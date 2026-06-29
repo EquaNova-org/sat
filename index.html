@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SAT Practice Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ LOCKDOWN NOTICE (shown if violation occurs) ============ -->
+<div id="violation-banner" class="violation-banner hidden">
+  <span id="violation-text"></span>
+</div>
+
+<!-- ============ SCREEN: WELCOME ============ -->
+<section id="screen-welcome" class="screen">
+  <div class="welcome-card">
+    <p class="eyebrow">Practice Exam Environment</p>
+    <h1>SAT Practice Test</h1>
+    <p class="welcome-sub">A full-length, timed simulation of the digital SAT &mdash; Reading &amp; Writing, then Math, with an adaptive second module in each section.</p>
+
+    <div class="welcome-grid">
+      <div class="welcome-fact">
+        <span class="fact-num">2 + 2</span>
+        <span class="fact-label">Modules<br>(R&amp;W, then Math)</span>
+      </div>
+      <div class="welcome-fact">
+        <span class="fact-num">10:00</span>
+        <span class="fact-label">Break between<br>R&amp;W and Math</span>
+      </div>
+      <div class="welcome-fact">
+        <span class="fact-num">&#8734;</span>
+        <span class="fact-label">Graphing calculator<br>in Math only</span>
+      </div>
+    </div>
+
+    <label class="name-label" for="student-name">Student name</label>
+    <input type="text" id="student-name" class="name-input" placeholder="Type your full name" autocomplete="off">
+
+    <div class="lockdown-notice">
+      <strong>Before you begin:</strong> this test runs in full screen and monitors for tab switches, app switches, or exiting full screen. If a violation is detected, your current module is submitted immediately and the test moves on. Close other apps now.
+    </div>
+
+    <button id="btn-start" class="btn btn-primary btn-large" disabled>Enter Full Screen &amp; Begin</button>
+  </div>
+</section>
+
+<!-- ============ SCREEN: MODULE INSTRUCTIONS (interstitial) ============ -->
+<section id="screen-interstitial" class="screen hidden">
+  <div class="welcome-card">
+    <p class="eyebrow" id="interstitial-eyebrow">Up next</p>
+    <h1 id="interstitial-title">Module Title</h1>
+    <p class="welcome-sub" id="interstitial-body"></p>
+    <button id="btn-interstitial-continue" class="btn btn-primary btn-large">Continue</button>
+  </div>
+</section>
+
+<!-- ============ SCREEN: BREAK ============ -->
+<section id="screen-break" class="screen hidden">
+  <div class="welcome-card break-card">
+    <p class="eyebrow">Break</p>
+    <h1>10-Minute Break</h1>
+    <p class="welcome-sub">Reading &amp; Writing is complete. Stretch, get some water. The Math section begins automatically when the break ends &mdash; or you can skip ahead.</p>
+    <div class="break-timer" id="break-timer">10:00</div>
+    <button id="btn-skip-break" class="btn btn-secondary">Skip Break &amp; Start Math</button>
+  </div>
+</section>
+
+<!-- ============ SCREEN: TEST MODULE (RW + MATH share this shell) ============ -->
+<section id="screen-test" class="screen hidden">
+  <header class="test-header">
+    <div class="header-left">
+      <span class="header-section-name" id="header-section-name">Reading and Writing</span>
+      <span class="header-module-name" id="header-module-name">Module 1</span>
+    </div>
+    <div class="header-center">
+      <button id="btn-toggle-timer" class="timer-pill" title="Click to hide/show timer">
+        <span id="timer-display">32:00</span>
+      </button>
+    </div>
+    <div class="header-right">
+      <button id="btn-toggle-calc" class="btn btn-tool hidden">Calculator</button>
+      <button id="btn-toggle-directions" class="btn btn-tool">Directions</button>
+      <span class="student-tag" id="header-student-name"></span>
+    </div>
+  </header>
+
+  <main class="test-body">
+    <!-- Reading & Writing: two-pane -->
+    <div id="pane-passage" class="pane pane-passage hidden">
+      <div class="pane-scroll">
+        <div class="toolbar">
+          <button id="btn-highlight" class="btn btn-tool-sm">Highlight</button>
+          <button id="btn-remove-highlight" class="btn btn-tool-sm hidden">Remove Highlight</button>
+        </div>
+        <div id="passage-content" class="passage-content"></div>
+      </div>
+    </div>
+
+    <div id="pane-question" class="pane pane-question">
+      <div class="pane-scroll">
+        <div class="question-meta">
+          <span class="q-number-badge" id="q-number-badge">1</span>
+          <button id="btn-flag" class="btn btn-flag">&#9873; Mark for Review</button>
+          <div class="elim-toggle">
+            <button id="btn-toggle-elim" class="btn btn-tool-sm">ABC <span class="elim-strike">Eliminate Answers</span></button>
+          </div>
+        </div>
+        <div id="question-stem" class="question-stem"></div>
+        <div id="choices-container" class="choices-container"></div>
+        <div id="grid-container" class="grid-container hidden">
+          <label for="grid-input">Enter your answer:</label>
+          <input type="text" id="grid-input" class="grid-input" autocomplete="off">
+        </div>
+      </div>
+    </div>
+
+    <!-- Math: Desmos panel -->
+    <div id="pane-calc" class="pane pane-calc hidden">
+      <div class="calc-header">
+        <span>Graphing Calculator</span>
+        <button id="btn-close-calc" class="btn-icon">&times;</button>
+      </div>
+      <div id="desmos-container" class="desmos-container"></div>
+    </div>
+  </main>
+
+  <footer class="test-footer">
+    <button id="btn-prev" class="btn btn-secondary">Back</button>
+    <button id="btn-question-nav" class="btn btn-nav-grid">
+      Question <span id="footer-q-current">1</span> of <span id="footer-q-total">27</span>
+    </button>
+    <button id="btn-next" class="btn btn-primary">Next</button>
+  </footer>
+
+  <!-- Question navigator overlay -->
+  <div id="nav-overlay" class="nav-overlay hidden">
+    <div class="nav-card">
+      <h2>Module Progress</h2>
+      <p class="nav-sub">Click a question to go directly to it.</p>
+      <div id="nav-grid" class="nav-grid"></div>
+      <div class="nav-legend">
+        <span><i class="dot dot-answered"></i> Answered</span>
+        <span><i class="dot dot-unanswered"></i> Unanswered</span>
+        <span><i class="dot dot-flagged"></i> Marked for review</span>
+      </div>
+      <div class="nav-actions">
+        <button id="btn-nav-close" class="btn btn-secondary">Return to Test</button>
+        <button id="btn-nav-submit" class="btn btn-primary">Submit Module</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Directions overlay -->
+  <div id="directions-overlay" class="nav-overlay hidden">
+    <div class="nav-card">
+      <h2 id="directions-title">Directions</h2>
+      <div id="directions-body" class="directions-body"></div>
+      <div class="nav-actions">
+        <button id="btn-directions-close" class="btn btn-primary">Close</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: RESULTS ============ -->
+<section id="screen-results" class="screen hidden">
+  <div class="results-wrap">
+    <p class="eyebrow">Test Complete</p>
+    <h1>Score Estimate</h1>
+    <p class="welcome-sub">This is an unofficial estimate using an approximate adaptive scoring model &mdash; not the official College Board algorithm.</p>
+
+    <div class="score-total" id="score-total">1200</div>
+    <div class="score-range">out of 1600</div>
+
+    <div class="score-breakdown" id="score-breakdown"></div>
+
+    <div class="results-table-wrap">
+      <h2>Module Detail</h2>
+      <table class="results-table" id="results-table">
+        <thead><tr><th>Module</th><th>Correct</th><th>Total</th><th>Difficulty Given</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="violations-log" id="violations-log"></div>
+
+    <button id="btn-restart" class="btn btn-secondary btn-large">Start a New Attempt</button>
+  </div>
+</section>
+
+<script src="js/questions-data.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
