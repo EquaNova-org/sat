@@ -48,13 +48,10 @@ const state = {
   rwTier: null,
   mathTier: null,
   elimModeOn: false,
-  timerHidden: false,
-  violations: []
+  timerHidden: false
 };
 
 let phaseIndex = -1;
-let lockdownActive = false;
-let violationGuard = false;
 let desmosCalculator = null;
 
 /* ---------------------------- timer ---------------------------- */
@@ -126,7 +123,6 @@ function goToPhase(index) {
 }
 
 function showInterstitial(phase) {
-  lockdownActive = false;
   showScreen('screen-interstitial');
   const info = INTERSTITIAL_TEXT[phase.key] || { title: phase.moduleLabel, body: 'Click continue when you are ready to begin.' };
   document.getElementById('interstitial-title').textContent = info.title;
@@ -135,7 +131,6 @@ function showInterstitial(phase) {
 }
 
 function startBreak(phase) {
-  lockdownActive = false;
   showScreen('screen-break');
   Timer.start(phase.timeLimit, (remaining) => {
     document.getElementById('break-timer').textContent = fmtTime(remaining);
@@ -158,7 +153,6 @@ function startTestPhase(phase) {
 
   renderQuestion();
 
-  lockdownActive = true;
   Timer.start(phase.timeLimit, onTimerTick, () => endModule(phase, { auto: true }));
 }
 
@@ -320,7 +314,6 @@ function matchesGrid(value, acceptable) {
 /* ---------------------------- module submission ---------------------------- */
 function endModule(phase, opts = {}) {
   Timer.stop();
-  lockdownActive = false;
   const questions = getQuestionsForPhase(phase);
   let correct = 0;
   questions.forEach(q => {
@@ -361,49 +354,9 @@ function initDesmosIfNeeded() {
   });
 }
 
-/* ---------------------------- lockdown / strict environment ---------------------------- */
-function showViolationBanner(text) {
-  const banner = document.getElementById('violation-banner');
-  document.getElementById('violation-text').textContent = text;
-  banner.classList.remove('hidden');
-  setTimeout(() => banner.classList.add('hidden'), 4000);
-}
-
-function triggerViolation(type) {
-  if (!lockdownActive || violationGuard) return;
-  violationGuard = true;
-  const phase = getCurrentPhase();
-  state.violations.push({ phase: phase.key, type, time: new Date().toLocaleTimeString() });
-  showViolationBanner(`${type} detected — this module has been submitted automatically.`);
-  endModule(phase, { auto: true, violation: true });
-  setTimeout(() => { violationGuard = false; }, 2000);
-}
-
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && lockdownActive) triggerViolation('Exited full screen');
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && lockdownActive) triggerViolation('Tab switch / app switch');
-});
-window.addEventListener('blur', () => {
-  if (lockdownActive) triggerViolation('Window lost focus');
-});
-window.addEventListener('beforeunload', (e) => {
-  if (lockdownActive) { e.preventDefault(); e.returnValue = ''; }
-});
-document.addEventListener('contextmenu', (e) => { if (lockdownActive) e.preventDefault(); });
-document.addEventListener('keydown', (e) => {
-  if (!lockdownActive) return;
-  const k = e.key ? e.key.toUpperCase() : '';
-  if (k === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(k)) || (e.ctrlKey && k === 'U')) {
-    e.preventDefault();
-  }
-});
-
 /* ---------------------------- results ---------------------------- */
 function showResultsScreen() {
   showScreen('screen-results');
-  lockdownActive = false;
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 
   const rwM1 = state.results['rw-m1'] || { correct: 0, total: 0 };
@@ -431,11 +384,6 @@ function showResultsScreen() {
   document.querySelector('#results-table tbody').innerHTML = rows
     .map(([label, r, diff]) => `<tr><td>${label}</td><td>${r.correct}</td><td>${r.total}</td><td>${diff}</td></tr>`)
     .join('');
-
-  const violationsEl = document.getElementById('violations-log');
-  violationsEl.innerHTML = state.violations.length
-    ? `<h2>Lockdown Events</h2><ul>${state.violations.map(v => `<li>${v.time} — ${v.type} during ${v.phase}</li>`).join('')}</ul>`
-    : '';
 }
 
 /* ---------------------------- static UI wiring ---------------------------- */
