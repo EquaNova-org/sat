@@ -11,11 +11,6 @@
 </head>
 <body>
 
-<!-- ============ LOCKDOWN NOTICE (shown if violation occurs) ============ -->
-<div id="violation-banner" class="violation-banner hidden">
-  <span id="violation-text"></span>
-</div>
-
 <!-- ============ SCREEN: WELCOME ============ -->
 <section id="screen-welcome" class="screen">
   <div class="welcome-card">
@@ -40,10 +35,6 @@
 
     <label class="name-label" for="student-name">Student name</label>
     <input type="text" id="student-name" class="name-input" placeholder="Type your full name" autocomplete="off">
-
-    <div class="lockdown-notice">
-      <strong>Before you begin:</strong> this test runs in full screen and monitors for tab switches, app switches, or exiting full screen. If a violation is detected, your current module is submitted immediately and the test moves on. Close other apps now.
-    </div>
 
     <button id="btn-start" class="btn btn-primary btn-large" disabled>Enter Full Screen &amp; Begin</button>
   </div>
@@ -186,8 +177,6 @@
         <tbody></tbody>
       </table>
     </div>
-
-    <div class="violations-log" id="violations-log"></div>
 
     <button id="btn-restart" class="btn btn-secondary btn-large">Start a New Attempt</button>
   </div>
